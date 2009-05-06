@@ -36,6 +36,10 @@ if ($ext !== '.flv') {
 if (is_dir($filename)) {
     die($error);
 }
+if (!($fh = fopen($file, 'rb'))) {
+    die($error);
+}
+header('Content-Type: video/x-flv');
 if ($seekat != 0) {
     echo 'FLV';
     echo pack('C', 1);
@@ -43,10 +47,6 @@ if ($seekat != 0) {
     echo pack('N', 9);
     echo pack('N', 9);
 }
-if (!($fh = fopen($file, 'rb'))) {
-    die($error);
-}
-header('Content-Type: video/x-flv');
 fseek($fh, $seekat);
 while (!feof($fh)) {
     echo fread($fh, filesize($file));
