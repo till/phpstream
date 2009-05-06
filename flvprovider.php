@@ -1,5 +1,7 @@
-<?
+<?php
 /*/
+some edits by Till, 2009-05-06
+
 security improved by by TRUI
 www.trui.net
 
@@ -12,30 +14,41 @@ Originally posted at www.flashcomguru.com
 $path = 'C:/.../clips/';
 
 
-$seekat = $_GET["position"];
-$filename = htmlspecialchars($_GET["file"]);
-$ext=strrchr($filename, ".");
-$file = $path . $filename;
+$seekat   = (int) $_GET["position"];
+$filename = basename($_GET["file"]);
+$ext      = strrchr($filename, '.');
+$file     = realpath($path . $filename);
+$self     = basename($_SERVER['PHP_SELF']);
+$error    = "ERORR: The file does not exist";
 
-
-if((file_exists($file)) && ($ext==".flv") && (strlen($filename)>2) && (!eregi(basename($_SERVER['PHP_SELF']), $filename)) && (ereg('^[^./][^/]*$', $filename)))
-{
-        header("Content-Type: video/x-flv");
-        if($seekat != 0) {
-                print("FLV");
-                print(pack('C', 1 ));
-                print(pack('C', 1 ));
-                print(pack('N', 9 ));
-                print(pack('N', 9 ));
-        }
-        $fh = fopen($file, "rb");
-        fseek($fh, $seekat);
-        while (!feof($fh)) {
-          print (fread($fh, filesize($file))); 
-        }
-        fclose($fh);
+if ($self == $file) {
+    die($error);
 }
-	else
-{
-        print("ERORR: The file does not exist"); }
-?>
+if (substr($file, 0, strlen($path)) !== $path) {
+    die($error);
+}
+if (!file_exists($file)) {
+    die($error);
+}
+if ($ext !== '.flv') {
+    die($error);
+}
+if (is_dir($filename)) {
+    die($error);
+}
+header('Content-Type: video/x-flv');
+if ($seekat != 0) {
+    echo 'FLV';
+    echo pack('C', 1);
+    echo pack('C', 1);
+    echo pack('N', 9);
+    echo pack('N', 9);
+}
+if (!($fh = fopen($file, 'rb'))) {
+    die($error);
+}
+fseek($fh, $seekat);
+while (!feof($fh)) {
+    echo fread($fh, filesize($file));
+}
+fclose($fh);
